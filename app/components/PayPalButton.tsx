@@ -1,52 +1,32 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-declare global {
-  interface Window {
-    paypal?: any;
-  }
-}
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 export default function PayPalButton() {
-  const paypalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (window.paypal) return; // 防止重复加载
-
-    const script = document.createElement("script");
-    script.src =
-      "https://www.paypal.com/sdk/js?client-id=ATbmRwUuq9O6z0LlAQpKAExOtYxN5Tf47V3yPsWXo6x2Uc3YrLpfbqO8KmpQiFHQM00tNQFhOMs8x4_u&currency=USD";
-    script.async = true;
-
-    script.onload = () => {
-      if (window.paypal && paypalRef.current) {
-        window.paypal
-          .Buttons({
-            createOrder: (data: any, actions: any) => {
-              return actions.order.create({
-                purchase_units: [
-                  {
-                    amount: { value: "5.00" },
-                  },
-                ],
-              });
-            },
-            onApprove: (data: any, actions: any) => {
-              return actions.order.capture().then(() => {
-                alert("支付成功");
-              });
-            },
-            onError: (err: any) => {
-              console.error("PayPal error:", err);
-            },
-          })
-          .render(paypalRef.current);
-      }
-    };
-
-    document.body.appendChild(script);
-  }, []);
-
-  return <div ref={paypalRef} style={{ marginTop: "20px" }} />;
+  return (
+    <PayPalScriptProvider
+      options={{
+        "client-id":
+          "ATbmRwUuq9O6z0LlAQpKAExOtYxN5Tf47V3yPsWXo6x2Uc3YrLpfbqO8KmpQiFHQM00tNQFhOMs8x4_u",
+        currency: "USD",
+      }}
+    >
+      <PayPalButtons
+        createOrder={(data, actions) => {
+          return actions.order.create({
+            purchase_units: [
+              {
+                amount: { value: "5.00" },
+              },
+            ],
+          });
+        }}
+        onApprove={(data, actions) => {
+          return actions.order.capture().then(() => {
+            alert("支付成功");
+          });
+        }}
+      />
+    </PayPalScriptProvider>
+  );
 }
