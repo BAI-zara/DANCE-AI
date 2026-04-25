@@ -1,5 +1,6 @@
 ﻿"use client"
 
+import PayPalButton from "./components/PayPalButton";
 import { type DragEvent, useEffect, useRef, useState } from "react"
 import {
   PoseLandmarker,
@@ -972,6 +973,7 @@ export default function Page() {
           <span>{formatDuration(playbackDurationMs)}</span>
         </div>
       </section>
+      <PayPalButton />
     </main>
   )
 }
