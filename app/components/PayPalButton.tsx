@@ -8,8 +8,7 @@ export default function PayPalButton() {
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
-      "https://www.paypal.com/sdk/js?client-id=AQ210w6UOiDh2vjMeqdwwYAAMWpeJ_9L6QY4oN8iWYmLvy8G3vA8Hz_ATBJTcQ9VAtcoq4_BY27iKvGB&currency=USD";
-    script.async = true;
+      "https://www.paypal.com/sdk/js?client-id=ATbmRwUuq9O6z0LlAQpKAExOtYxN5Tf47V3yPsWXo6x2Uc3YrLpfbqO8KmpQiFHQM00tNQFhOMs8x4_u&currency=USD;
 
     script.onload = () => {
       if (window.paypal) {
