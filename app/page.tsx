@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import PayPalButton from "./components/PayPalButton";
+import Link from "next/link"
 import { type DragEvent, useEffect, useRef, useState } from "react"
 import {
   PoseLandmarker,
@@ -835,49 +836,150 @@ export default function Page() {
   const orderedRecordedClips = normalizeClipTimeline(recordedClips)
 
   return (
-    <main className="simple-page">
+    <main className="product-page">
       <header className="product-header">
-        <div>
-          <h1 className="simple-title">粒子视觉骨架系统</h1>
-          {errorMessage ? <p className="simple-error">{errorMessage}</p> : null}
-        </div>
-
-        <section className="mode-controls" aria-label="模式">
-          <span className="simple-label">模式：</span>
-          <button
-            type="button"
-            onClick={handleModeChange('crazy')}
-            className={`simple-button ${mode === 'crazy' ? "dark" : ""}`}
-          >
-            疯狂模式
-          </button>
-          <button
-            type="button"
-            onClick={handleModeChange('calm')}
-            className={`simple-button ${mode === 'calm' ? "green" : ""}`}
-          >
-            平静模式
-          </button>
-        </section>
+        <Link href="/" className="product-logo" aria-label="Dance AI home">
+          <span className="logo-mark">DA</span>
+          <span>
+            <strong>Dance AI</strong>
+            <small>AI Dance Analyzer</small>
+          </span>
+        </Link>
+        <nav className="header-nav" aria-label="Primary navigation">
+          <a href="#pro">Pro</a>
+          <a href="#features">Features</a>
+          <Link href="/contact">Contact</Link>
+        </nav>
       </header>
 
-      <section className="stage-section" aria-label="摄像头预览">
-        <div className="stage">
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            className={mode === 'crazy' ? "video-hidden" : "video-visible"}
-          />
-          <canvas ref={particleCanvasRef} />
+      <section className="hero-section" aria-labelledby="hero-title">
+        <div className="hero-copy">
+          <span className="eyebrow">AI Dance Analyzer</span>
+          <h1 id="hero-title">Record, analyze, and export dance motion with AI.</h1>
+          <p>
+            A clean studio for real-time pose tracking, replayable movement clips,
+            and paid Pro exports.
+          </p>
+        </div>
+
+        <div className="stage-card card">
+          {errorMessage ? <p className="simple-error">{errorMessage}</p> : null}
+          <div className="stage">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className={mode === 'crazy' ? "video-hidden" : "video-visible"}
+            />
+            <canvas ref={particleCanvasRef} />
+          </div>
+
+          <div className="hero-action-row">
+            <button
+              type="button"
+              onClick={handleRecordToggle}
+              disabled={isReplaying}
+              className={`primary-record-button ${isRecording ? "danger" : ""}`}
+            >
+              {isRecording ? "Stop Recording" : "Start Recording"}
+            </button>
+            <span className="simple-status">
+              {isRecording
+                ? "Recording..."
+                : recordedFrameCount
+                  ? `${recordedFrameCount} frames captured`
+                  : "Ready to record"}
+              {isReplaying ? ` · ${formatDuration(playbackPositionMs)} / ${formatDuration(playbackDurationMs)}` : ""}
+              {isReplaying && playbackClipCount > 1 ? ` · Clip ${currentClipIndex + 1}/${playbackClipCount}` : ""}
+            </span>
+          </div>
+
+          <section className="mode-controls" aria-label="Visual mode">
+            <span className="simple-label">Mode</span>
+            <button
+              type="button"
+              onClick={handleModeChange('calm')}
+              className={`secondary-button ${mode === 'calm' ? "active" : ""}`}
+            >
+              Calm
+            </button>
+            <button
+              type="button"
+              onClick={handleModeChange('crazy')}
+              className={`secondary-button ${mode === 'crazy' ? "active" : ""}`}
+            >
+              Energy
+            </button>
+          </section>
         </div>
       </section>
 
-      <section className="timeline-section">
-        <h2>时间轴</h2>
+      <section className="controls-section card" aria-label="Clip controls">
+        <div className="simple-controls">
+          <button
+            type="button"
+            onClick={handlePlayback}
+            disabled={isRecording || isReplaying || !recordedFrameCount}
+            className="simple-pill"
+          >
+            Replay
+          </button>
+          <button
+            type="button"
+            onClick={playOrderedClips}
+            disabled={isRecording || isReplaying || !orderedRecordedClips.length}
+            className="simple-pill"
+          >
+            Play All
+          </button>
+          <button
+            type="button"
+            onClick={stopPlayback}
+            disabled={!isReplaying}
+            className="simple-pill muted-button"
+          >
+            Stop
+          </button>
+          <button
+            type="button"
+            onClick={isRecordingVideo ? stopVideoRecording : startVideoRecording}
+            className={`simple-pill ${isRecordingVideo ? "danger" : ""}`}
+          >
+            {isRecordingVideo ? "Stop Export" : "Export Video"}
+          </button>
+          {exportedVideoUrl ? (
+            <a
+              href={exportedVideoUrl}
+              download={exportedVideoFilename}
+              className="simple-download-link"
+            >
+              Download Video
+            </a>
+          ) : null}
+        </div>
+
+        <div className="simple-progress">
+          <span>{formatDuration(playbackPositionMs)}</span>
+          <input
+            type="range"
+            min={0}
+            max={Math.max(1, playbackDurationMs)}
+            value={Math.min(playbackPositionMs, Math.max(1, playbackDurationMs))}
+            onChange={(event) => handleProgressSeek(Number(event.target.value))}
+            disabled={!isReplaying || playbackDurationMs <= 0}
+          />
+          <span>{formatDuration(playbackDurationMs)}</span>
+        </div>
+      </section>
+
+      <section className="timeline-section card" aria-label="Timeline">
+        <div className="section-heading">
+          <span>Timeline</span>
+          <small>{orderedRecordedClips.length} clips</small>
+        </div>
         <div className="simple-timeline">
-          {orderedRecordedClips.map((clip) => (
+          {orderedRecordedClips.length ? orderedRecordedClips.map((clip) => (
             <div
               key={clip.id}
               className={[
@@ -895,85 +997,50 @@ export default function Page() {
               <span>{clip.order}</span>
               <small>{formatSeconds(clip.duration)}</small>
             </div>
-          ))}
+          )) : (
+            <p className="empty-timeline">Recorded clips appear here.</p>
+          )}
         </div>
       </section>
 
-      <section className="controls-section">
-        <div className="simple-controls">
-          <button
-            type="button"
-            onClick={handleRecordToggle}
-            disabled={isReplaying}
-            className={`simple-pill ${isRecording ? "red" : "blue"}`}
-          >
-            {isRecording ? "停止录制" : "开始录制"}
-          </button>
-          <button
-            type="button"
-            onClick={handlePlayback}
-            disabled={isRecording || isReplaying || !recordedFrameCount}
-            className="simple-pill green"
-          >
-            回放录制动作
-          </button>
-          <button
-            type="button"
-            onClick={playOrderedClips}
-            disabled={isRecording || isReplaying || !orderedRecordedClips.length}
-            className="simple-pill green"
-          >
-            按顺序播放全部
-          </button>
-          <button
-            type="button"
-            onClick={stopPlayback}
-            disabled={!isReplaying}
-            className="simple-pill red"
-          >
-            停止播放
-          </button>
-          <button
-            type="button"
-            onClick={isRecordingVideo ? stopVideoRecording : startVideoRecording}
-            className={`simple-pill ${isRecordingVideo ? "red" : "purple"}`}
-          >
-            {isRecordingVideo ? "停止视频录制" : "开始视频录制"}
-          </button>
-          {exportedVideoUrl ? (
-            <a
-              href={exportedVideoUrl}
-              download={exportedVideoFilename}
-              className="simple-download-link purple"
-            >
-              下载视频
-            </a>
-          ) : null}
-          <span className="simple-status">
-            {isRecording
-              ? "正在录制..."
-              : recordedFrameCount
-                ? `已录制 ${recordedFrameCount} 帧`
-                : "未录制任何动作"}
-            {isReplaying ? ` · ${formatDuration(playbackPositionMs)} / ${formatDuration(playbackDurationMs)}` : ""}
-            {isReplaying && playbackClipCount > 1 ? ` · Clip ${currentClipIndex + 1}/${playbackClipCount}` : ""}
-          </span>
+      <section id="pro" className="cta-section card" aria-labelledby="pro-title">
+        <div className="cta-copy">
+          <span className="eyebrow">Unlock Pro - $5</span>
+          <h2 id="pro-title">Unlock Pro Features</h2>
+          <p>Get full access to AI analysis, polished exports, and creator-ready workflow tools.</p>
         </div>
-
-        <div className="simple-progress">
-          <span>{formatDuration(playbackPositionMs)}</span>
-          <input
-            type="range"
-            min={0}
-            max={Math.max(1, playbackDurationMs)}
-            value={Math.min(playbackPositionMs, Math.max(1, playbackDurationMs))}
-            onChange={(event) => handleProgressSeek(Number(event.target.value))}
-            disabled={!isReplaying || playbackDurationMs <= 0}
-          />
-          <span>{formatDuration(playbackDurationMs)}</span>
+        <div className="paypal-panel">
+          <PayPalButton />
         </div>
       </section>
-      <PayPalButton />
+
+      <section id="features" className="features-section" aria-label="Features">
+        <article className="feature-card card">
+          <span>01</span>
+          <h3>Real-time tracking</h3>
+          <p>Follow movement instantly through the live camera preview.</p>
+        </article>
+        <article className="feature-card card">
+          <span>02</span>
+          <h3>AI pose detection</h3>
+          <p>Detect body landmarks with MediaPipe-powered pose analysis.</p>
+        </article>
+        <article className="feature-card card">
+          <span>03</span>
+          <h3>Export video</h3>
+          <p>Save shareable WebM clips from your AI movement session.</p>
+        </article>
+      </section>
+
+      <footer className="product-footer">
+        <span>Dance AI</span>
+        <nav aria-label="Legal links">
+          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/terms">Terms of Service</Link>
+          <Link href="/refund">Refund Policy</Link>
+          <Link href="/contact">Contact</Link>
+        </nav>
+      </footer>
     </main>
   )
 }
