@@ -704,7 +704,7 @@ export default function DanceStudio() {
           playbackFinishedInLoopRef.current = true
         }
       } else {
-        if (video.readyState >= 2) {
+        if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
           prepareCanvasFrame()
 
           const frameTime = performance.now()
